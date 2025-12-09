@@ -25,7 +25,12 @@ echo ""
 # Database URL format: postgresql://postgres:[password]@db.xxxxx.supabase.co:5432/postgres
 
 PROJECT_REF=$(echo $SUPABASE_URL | sed -E 's|https://([^.]+)\.supabase\.co|\1|')
-DB_URL="postgresql://postgres.${PROJECT_REF}:${SUPABASE_SERVICE_KEY}@aws-0-us-west-1.pooler.supabase.com:5432/postgres"
+
+# Try direct database connection first (works better for migrations)
+# Format: postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+DB_URL="postgresql://postgres:${SUPABASE_SERVICE_KEY}@db.${PROJECT_REF}.supabase.co:5432/postgres"
+
+echo "📌 Project ref: $PROJECT_REF"
 
 # Check if psql is installed
 if ! command -v psql &> /dev/null; then
@@ -37,8 +42,8 @@ if ! command -v psql &> /dev/null; then
     exit 1
 fi
 
-# Count migration files
-MIGRATION_COUNT=$(ls -1 scripts/migrations/*.sql 2>/dev/null | wc -l | tr -d ' ')
+# Count migration files (only numbered migrations 001-007)
+MIGRATION_COUNT=$(ls -1 scripts/migrations/0*.sql 2>/dev/null | wc -l | tr -d ' ')
 
 if [ "$MIGRATION_COUNT" -eq 0 ]; then
     echo "❌ Error: No migration files found in scripts/migrations/"
@@ -48,8 +53,8 @@ fi
 echo "Found $MIGRATION_COUNT migration files"
 echo ""
 
-# Run each migration in order
-for file in scripts/migrations/*.sql; do
+# Run each migration in order (only numbered ones)
+for file in scripts/migrations/0*.sql; do
   filename=$(basename "$file")
   echo "📝 Running migration: $filename"
 

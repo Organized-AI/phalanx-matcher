@@ -8,7 +8,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { HTTPException } from 'hono/http-exception';
 
-import { createSupabaseClient, getFounderById, createFounder, findSimilarFunders, saveMatchesBatch, healthCheck } from './supabase';
+import { createSupabaseClient, getFounderById, createFounder, findSimilarFunders, getAllFunders, saveMatchesBatch, healthCheck } from './supabase';
 import { createEmbeddingClient, embedFounderProfile } from './embeddings';
 import { scoreMatchCandidates, rankMatches } from './matching';
 import { calculateProfileCompleteness } from './types';
@@ -194,6 +194,95 @@ app.get('/match/:founderId', async (c) => {
     matches,
     total_results: matches.length,
     generated_at: new Date().toISOString(),
+  };
+
+  return c.json(response);
+});
+
+/**
+ * GET /match-rules/:founderId
+ * Find matching funders using ONLY rule-based scoring (no embeddings required)
+ * Useful for demo/testing when OpenAI embeddings are not available
+ */
+app.get('/match-rules/:founderId', async (c) => {
+  const founderId = c.req.param('founderId');
+  const limit = parseInt(c.req.query('limit') || '10', 10);
+  const minScore = parseFloat(c.req.query('minScore') || '0.3');
+
+  // Validation
+  if (limit < 1 || limit > 50) {
+    throw new HTTPException(400, { message: 'Limit must be between 1 and 50' });
+  }
+
+  // Initialize clients
+  const supabase = createSupabaseClient(
+    c.env.SUPABASE_URL,
+    c.env.SUPABASE_SERVICE_KEY || c.env.SUPABASE_ANON_KEY
+  );
+
+  // Get founder
+  const founder = await getFounderById(supabase, founderId);
+  if (!founder) {
+    throw new HTTPException(404, { message: `Founder with ID ${founderId} not found` });
+  }
+
+  // Get all active funders
+  const allFunders = await getAllFunders(supabase);
+
+  if (allFunders.length === 0) {
+    const response: MatchResponse = {
+      founder: {
+        id: founder.id,
+        name: founder.name,
+        company_name: founder.company_name,
+      },
+      matches: [],
+      total_results: 0,
+      generated_at: new Date().toISOString(),
+    };
+    return c.json(response);
+  }
+
+  // Calculate rule-based scores only (semantic = 0)
+  const candidates = scoreMatchCandidates(
+    founder,
+    allFunders.map((funder) => ({
+      funder,
+      semanticScore: 0, // No semantic score without embeddings
+    }))
+  );
+
+  // Filter and rank
+  const rankedMatches = rankMatches(candidates, minScore, limit);
+
+  // Format response
+  const matches: MatchResult[] = rankedMatches.map((m) => ({
+    funder: {
+      id: m.funder.id,
+      name: m.funder.name,
+      firm_name: m.funder.firm_name,
+      bio: m.funder.bio,
+    },
+    scores: {
+      total_score: m.scoreBreakdown.total_score,
+      semantic_score: 0, // No semantic
+      rule_score: m.scoreBreakdown.rule.score,
+      stage_score: m.scoreBreakdown.stage.score,
+      quality_tier: m.scoreBreakdown.quality_tier,
+    },
+    reasoning: m.scoreBreakdown,
+  }));
+
+  const response: MatchResponse = {
+    founder: {
+      id: founder.id,
+      name: founder.name,
+      company_name: founder.company_name,
+    },
+    matches,
+    total_results: matches.length,
+    generated_at: new Date().toISOString(),
+    note: 'Rule-based matching only (semantic score disabled). Max possible score: 0.60',
   };
 
   return c.json(response);

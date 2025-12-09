@@ -222,6 +222,7 @@ export interface MatchResponse {
   matches: MatchResult[];
   total_results: number;
   generated_at: string;
+  note?: string;
 }
 
 export interface MatchQueryParams {
