@@ -1,170 +1,58 @@
-# /api-documenter
+Generate API documentation for the Phalanx Matching API.
 
-Generate OpenAPI documentation from TypeScript code.
+## Your Task
 
-## Usage
+Create comprehensive API documentation from the source code.
 
-```
-/api-documenter [action]
-```
+## Steps
 
-## Actions
+1. Read all files in `src/` to understand the API endpoints
+2. Read `PLANNING/EXECUTION-PLAN.md` for expected request/response shapes
+3. Generate documentation in `docs/`:
+   - `openapi.yaml` - OpenAPI 3.0 specification
+   - `INTEGRATION.md` - Integration guide for Jake and Paul
+   - `examples/` - Example request/response payloads
 
-### generate
-Create OpenAPI spec from source code.
+## OpenAPI Spec Requirements
 
-```
-/api-documenter generate
-```
-
-Output: `docs/openapi.yaml`
-
-### validate
-Check code matches existing spec.
-
-```
-/api-documenter validate
-```
-
-### examples
-Generate example payloads for each endpoint.
-
-```
-/api-documenter examples
-```
-
-Output: `docs/examples/`
+Include for each endpoint:
+- Summary and description
+- Request parameters (path, query, body)
+- Request body schema with examples
+- Response schemas for all status codes
+- Error response formats
 
 ## Endpoints to Document
 
 ### GET /health
 Health check endpoint.
 
-### POST /match/:founderId
+### POST /match/:founderId  
 Get ranked matches for a founder.
-
-Request: None (founder ID in path)
-
-Response:
-```json
-{
-  "success": true,
-  "founder_id": "uuid",
-  "match_count": 5,
-  "matches": [
-    {
-      "funder_id": "uuid",
-      "funder_name": "Jennifer Wu",
-      "firm_name": "Horizon Ventures",
-      "total_score": 87.5,
-      "semantic_score": 82.3,
-      "rule_score": 100,
-      "stage_score": 75,
-      "reasoning": {
-        "semantic": "Strong thesis alignment",
-        "rules": {
-          "industryMatch": 25,
-          "checkSizeFit": 25,
-          "geographicMatch": 25,
-          "completenessBonus": 25
-        },
-        "stage": "Adjacent stage match"
-      }
-    }
-  ],
-  "match_quality": {
-    "excellent": 1,
-    "good": 3,
-    "fair": 1
-  }
-}
-```
+- Path param: `founderId` (UUID)
+- Response: Match results with scores and reasoning
 
 ### POST /ingest/founder
-Ingest new founder profile from intake form.
+Ingest new founder profile (webhook from Jake's intake).
+- Request body: Founder profile fields
+- Response: Created founder with completeness score and initial matches
 
-Request:
-```json
-{
-  "name": "Sarah Chen",
-  "email": "sarah@medisync.ai",
-  "company_name": "MediSync AI",
-  "industry_sector": "healthcare",
-  "company_stage": "seed",
-  "problem_statement": "...",
-  "solution_description": "...",
-  "raise_amount": 2500000,
-  "geographic_location": "San Francisco"
-}
-```
+## Integration Guide Requirements
 
-Response:
-```json
-{
-  "success": true,
-  "founder_id": "uuid",
-  "profile_completeness": 85,
-  "raise_hand_eligible": true,
-  "initial_matches": [...]
-}
-```
-
-## OpenAPI Template
-
-```yaml
-openapi: 3.0.3
-info:
-  title: Phalanx Matching API
-  version: 1.0.0
-  description: AI-powered founder-funder matching engine
-
-servers:
-  - url: https://phalanx-matcher.workers.dev
-    description: Production
-  - url: http://localhost:8787
-    description: Development
-
-paths:
-  /health:
-    get:
-      summary: Health check
-      responses:
-        '200':
-          description: OK
-          
-  /match/{founderId}:
-    post:
-      summary: Get matches for founder
-      parameters:
-        - name: founderId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Match results
-          
-  /ingest/founder:
-    post:
-      summary: Ingest new founder
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/FounderInput'
-      responses:
-        '200':
-          description: Founder created
-```
-
-## Integration Guide Output
-
-Also generate `docs/INTEGRATION.md` for Jake and Paul with:
-- Webhook payload schema
+Write `docs/INTEGRATION.md` for Jake and Paul including:
 - Authentication requirements
-- Error handling
-- Rate limits
-- Example curl commands
+- Webhook payload schema for `/ingest/founder`
+- Example curl commands for each endpoint
+- Error handling guide
+- Rate limiting info
+- How to test locally vs production
+
+## Example Payloads
+
+Create `docs/examples/` with:
+- `ingest-founder-request.json`
+- `ingest-founder-response.json`
+- `match-response.json`
+- `error-response.json`
+
+Generate the documentation now.

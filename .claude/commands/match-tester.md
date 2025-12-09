@@ -1,158 +1,64 @@
-# /match-tester
+Test and validate the matching algorithm quality.
 
-Test and validate match quality.
+## Your Task
 
-## Usage
+Create and run tests to validate the hybrid matching algorithm produces sensible results.
 
-```
-/match-tester [action]
-```
+## Steps
 
-## Actions
+1. Read `.claude/skills/hybrid-matching.md` for algorithm details
+2. Read `scripts/seeds/founders.json` and `scripts/seeds/funders.json` for test data
+3. Create test files in `tests/`:
+   - `matching.test.ts` - Unit tests for scoring functions
+   - `integration.test.ts` - End-to-end matching tests
+   - `quality.test.ts` - Match quality validation
 
-### run
-Run all match quality tests.
+## Test Categories
 
-```
-/match-tester run
-```
+### Unit Tests (matching.test.ts)
+- `calculateSemanticScore` returns 0-100
+- `calculateRuleScore` breakdown adds up correctly
+- `calculateStageScore` handles all stage combinations
+- Total score weighted correctly (40/40/20)
 
-### benchmark
-Benchmark matching performance.
+### Integration Tests (integration.test.ts)
+- API returns matches for valid founder ID
+- API handles invalid founder ID
+- Matches are sorted by total_score descending
+- Response includes reasoning for each match
 
-```
-/match-tester benchmark
-```
-
-### analyze
-Analyze match distribution.
-
-```
-/match-tester analyze
-```
-
-### coverage
-Check test coverage of edge cases.
-
-```
-/match-tester coverage
-```
-
-## Test Cases
-
-### Exact Match Tests
-Verify perfect matches score highest.
+### Quality Tests (quality.test.ts)
+Test that matches make business sense:
 
 ```typescript
-test('healthcare founder matches healthcare VC', async () => {
-  const founder = getFounder('medisync_ai'); // healthcare, seed
-  const matches = await findMatches(founder.id);
-  
-  // Horizon Ventures: healthcare + seed investor
-  expect(matches[0].firm_name).toBe('Horizon Ventures');
-  expect(matches[0].total_score).toBeGreaterThan(85);
-});
+// Healthcare founder should match healthcare VC
+test('healthcare founder matches healthcare investor first')
+
+// Seed founder should rank seed VCs higher  
+test('seed founder prefers seed-stage investors')
+
+// $2M raise should match $1-5M check size
+test('raise amount matches appropriate check sizes')
+
+// High completeness gets bonus points
+test('complete profiles score higher than incomplete')
 ```
 
-### Stage Alignment Tests
+## Quality Metrics to Report
 
-```typescript
-test('seed founder ranks seed VCs higher than series_b VCs', async () => {
-  const founder = getFounder('seed_stage_founder');
-  const matches = await findMatches(founder.id);
-  
-  const seedVCRank = matches.findIndex(m => m.stage_prefs.includes('seed'));
-  const seriesBRank = matches.findIndex(m => m.stage_prefs.includes('series_b'));
-  
-  expect(seedVCRank).toBeLessThan(seriesBRank);
-});
-```
+After running tests, output:
+- Total matches generated
+- Score distribution (excellent/good/fair/poor)
+- Average component scores (semantic/rules/stage)
+- Edge cases covered vs missing
 
-### Check Size Tests
+## Argument Handling
 
-```typescript
-test('$2M raise matches $1-5M check size, not $10-20M', async () => {
-  const founder = getFounder('two_million_raise');
-  const matches = await findMatches(founder.id);
-  
-  const topMatch = matches[0];
-  expect(topMatch.check_size_min).toBeLessThanOrEqual(2000000);
-  expect(topMatch.check_size_max).toBeGreaterThanOrEqual(2000000);
-});
-```
+- `run` - Run all tests
+- `unit` - Run unit tests only
+- `integration` - Run integration tests only  
+- `quality` - Run quality validation only
+- `benchmark` - Run performance benchmarks
+- `analyze` - Analyze match distribution
 
-### Edge Cases
-
-```typescript
-test('low completeness founder still gets matches but lower scores', async () => {
-  const founder = getFounder('incomplete_profile'); // 50% complete
-  const matches = await findMatches(founder.id);
-  
-  expect(matches.length).toBeGreaterThan(0);
-  expect(matches[0].reasoning.rules.completenessBonus).toBe(0);
-});
-
-test('no geographic restriction matches all locations', async () => {
-  const funder = getFunder('global_investor'); // empty geographic_focus
-  // Should match founders from any location
-});
-```
-
-## Benchmark Metrics
-
-```typescript
-interface BenchmarkResult {
-  totalFounders: number;
-  totalFunders: number;
-  avgMatchTime: number;  // ms
-  p95MatchTime: number;  // ms
-  avgMatchesPerFounder: number;
-  scoreDistribution: {
-    excellent: number;  // 90+
-    good: number;       // 75-89
-    fair: number;       // 50-74
-    poor: number;       // <50
-  };
-}
-```
-
-## Analysis Output
-
-```
-Match Quality Report
-====================
-
-Total Matches Generated: 50
-Average Score: 72.3
-
-Score Distribution:
-  Excellent (90+): 8 (16%)
-  Good (75-89): 22 (44%)
-  Fair (50-74): 15 (30%)
-  Poor (<50): 5 (10%)
-
-Component Contributions:
-  Semantic avg: 68.5
-  Rules avg: 75.2
-  Stage avg: 82.0
-
-Edge Cases Covered:
-  ✓ Exact stage match
-  ✓ Adjacent stage match
-  ✓ Check size boundaries
-  ✓ Multi-sector overlap
-  ✗ No sector overlap (need more test data)
-```
-
-## Run Tests
-
-```bash
-# Unit tests
-npm test
-
-# Match quality tests
-npm run test:matches
-
-# Benchmark
-npm run benchmark
-```
+Create the test files and run them now.
