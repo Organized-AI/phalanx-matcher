@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "vitest"
+    "test": "vitest",
+    "migrate": "bash scripts/run-migrations.sh \"$SUPABASE_URL\" \"$SUPABASE_SERVICE_KEY\"",
+    "seed": "tsx scripts/seed-database.ts",
+    "setup": "npm install && npm run migrate && npm run seed",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "hono": "^4.0.0",
@@ -17,6 +21,7 @@
     "@cloudflare/workers-types": "^4.20240109.0",
     "typescript": "^5.3.3",
     "wrangler": "^3.22.0",
-    "vitest": "^1.2.0"
+    "vitest": "^1.2.0",
+    "tsx": "^4.7.0"
   }
 }

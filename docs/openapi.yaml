@@ -1,0 +1,679 @@
+openapi: 3.0.0
+info:
+  title: Phalanx Matching Engine API
+  version: 0.1.0
+  description: |
+    AI-powered founder-funder matching engine using hybrid 40/40/20 scoring algorithm.
+
+    **Algorithm**:
+    - 40% Semantic similarity (pgvector cosine)
+    - 40% Rule-based (industry, check size, geography, completeness)
+    - 20% Stage alignment
+
+    **Success Criteria**:
+    - API response < 500ms
+    - Top match relevant in 8/10 tests
+    - All scores have human-readable reasoning
+  contact:
+    name: Jordan (PM)
+    email: jordan@phalanx.ai
+  license:
+    name: MIT
+
+servers:
+  - url: https://phalanx-matcher.workers.dev
+    description: Production (Cloudflare Workers)
+  - url: http://localhost:8787
+    description: Local development
+
+tags:
+  - name: Health
+    description: Service health and status endpoints
+  - name: Matching
+    description: Core matching algorithm endpoints
+  - name: Ingestion
+    description: Data ingestion webhooks
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns service status and timestamp
+      operationId: getHealth
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok, degraded, down]
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2024-01-15T10:30:00Z"
+                  version:
+                    type: string
+                    example: "0.1.0"
+                  environment:
+                    type: string
+                    example: "production"
+
+  /match/{founderId}:
+    get:
+      summary: Find matching funders for a founder
+      description: |
+        Returns ranked list of funders matching the specified founder using hybrid scoring.
+
+        **Scoring**:
+        - Semantic (40%): Vector similarity
+        - Rule (40%): Industry, check size, geography, completeness
+        - Stage (20%): Exact/adjacent stage matching
+
+        Results include detailed reasoning for each score component.
+      operationId: getMatches
+      tags:
+        - Matching
+      parameters:
+        - name: founderId
+          in: path
+          required: true
+          description: UUID of the founder to match
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+        - name: limit
+          in: query
+          description: Maximum number of matches to return
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+          example: 10
+
+        - name: minScore
+          in: query
+          description: Minimum total score threshold (0.0-1.0)
+          schema:
+            type: number
+            format: float
+            default: 0.5
+            minimum: 0.0
+            maximum: 1.0
+          example: 0.75
+
+        - name: qualityTier
+          in: query
+          description: Filter by quality tier
+          schema:
+            type: string
+            enum: [Excellent, Good, Fair, Poor]
+          example: "Good"
+
+      responses:
+        '200':
+          description: Successful match results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchResponse'
+              examples:
+                excellentMatch:
+                  summary: Excellent quality match
+                  value:
+                    founder:
+                      id: "550e8400-e29b-41d4-a716-446655440000"
+                      name: "Alice Chen"
+                      company_name: "FinFlow AI"
+                    matches:
+                      - funder:
+                          id: "660e9511-f39c-52e5-b827-557766551111"
+                          name: "Sarah Johnson"
+                          firm_name: "Catalyst Ventures"
+                          bio: "Former fintech founder investing in early-stage infrastructure"
+                        scores:
+                          total_score: 0.94
+                          semantic_score: 0.85
+                          rule_score: 1.0
+                          stage_score: 1.0
+                          quality_tier: "Excellent"
+                        reasoning:
+                          semantic:
+                            score: 0.85
+                            weight: 0.4
+                            contribution: 0.34
+                            reasoning: "Strong alignment in business model"
+                          rule:
+                            score: 1.0
+                            weight: 0.4
+                            contribution: 0.4
+                            breakdown:
+                              industry_match:
+                                score: 1.0
+                                weight: 0.15
+                                reasoning: "Exact match: Fintech"
+                              check_size:
+                                score: 1.0
+                                weight: 0.15
+                                reasoning: "Perfect fit: $500k-$1M within range"
+                              geography:
+                                score: 1.0
+                                weight: 0.05
+                                reasoning: "North America in focus"
+                              completeness:
+                                score: 1.0
+                                weight: 0.05
+                                reasoning: "Profile 100% complete"
+                          stage:
+                            score: 1.0
+                            weight: 0.2
+                            contribution: 0.2
+                            reasoning: "Exact stage match: Seed"
+                          total_score: 0.94
+                          quality_tier: "Excellent"
+                    total_results: 1
+                    generated_at: "2024-01-15T10:30:00Z"
+
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "ValidationError"
+                message: "Invalid founderId format. Expected UUID."
+                status: 400
+
+        '404':
+          description: Founder not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "NotFound"
+                message: "Founder with ID 550e8400-e29b-41d4-a716-446655440000 not found"
+                status: 404
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ingest/founder:
+    post:
+      summary: Ingest new founder profile
+      description: |
+        Webhook endpoint for creating new founder profiles.
+
+        **Process**:
+        1. Validate profile data
+        2. Calculate profile completeness
+        3. Generate embedding from description + industry + stage
+        4. Store in database
+
+        Used by Jake's intake system to add founders from applications.
+      operationId: ingestFounder
+      tags:
+        - Ingestion
+      requestBody:
+        required: true
+        description: Founder profile data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FounderProfileInput'
+            examples:
+              completeProfile:
+                summary: Complete founder profile
+                value:
+                  name: "Alice Chen"
+                  email: "alice@finflow.ai"
+                  company_name: "FinFlow AI"
+                  company_description: "AI-powered cash flow forecasting for SMBs"
+                  industry: "Fintech"
+                  stage: "Seed"
+                  seeking_amount_min: 500
+                  seeking_amount_max: 1000
+                  geography: "North America"
+              minimalProfile:
+                summary: Minimal founder profile
+                value:
+                  name: "Bob Martinez"
+                  email: "bob@startup.io"
+                  industry: "HealthTech"
+                  stage: "Pre-Seed"
+
+      responses:
+        '201':
+          description: Founder profile created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: Generated founder ID
+                  embedding_generated:
+                    type: boolean
+                    description: Whether embedding was successfully generated
+                  profile_completeness:
+                    type: number
+                    format: float
+                    description: Completeness score (0.0-1.0)
+                  created_at:
+                    type: string
+                    format: date-time
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                embedding_generated: true
+                profile_completeness: 0.89
+                created_at: "2024-01-15T10:30:00Z"
+
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "ValidationError"
+                message: "Missing required field: email"
+                status: 400
+
+        '409':
+          description: Founder with email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "ConflictError"
+                message: "Founder with email alice@finflow.ai already exists"
+                status: 409
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    FounderProfileInput:
+      type: object
+      required:
+        - name
+        - email
+        - industry
+        - stage
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Founder's full name
+          example: "Alice Chen"
+
+        email:
+          type: string
+          format: email
+          description: Founder's email address (must be unique)
+          example: "alice@finflow.ai"
+
+        company_name:
+          type: string
+          maxLength: 200
+          description: Name of the company
+          example: "FinFlow AI"
+
+        company_description:
+          type: string
+          maxLength: 2000
+          description: Description of the company and product
+          example: "AI-powered cash flow forecasting platform for SMBs"
+
+        industry:
+          type: string
+          enum:
+            - Fintech
+            - HealthTech
+            - EdTech
+            - CleanTech
+            - Enterprise SaaS
+            - Consumer
+            - DeepTech
+            - PropTech
+            - Logistics
+            - Cybersecurity
+          description: Primary industry vertical
+
+        stage:
+          type: string
+          enum:
+            - Pre-Seed
+            - Seed
+            - Series A
+            - Series B+
+          description: Current fundraising stage
+
+        seeking_amount_min:
+          type: integer
+          minimum: 0
+          description: Minimum seeking amount in thousands (e.g., 500 = $500k)
+          example: 500
+
+        seeking_amount_max:
+          type: integer
+          minimum: 0
+          description: Maximum seeking amount in thousands
+          example: 1000
+
+        geography:
+          type: string
+          enum:
+            - North America
+            - Europe
+            - Asia
+            - Latin America
+            - Middle East
+            - Africa
+            - Oceania
+            - Global
+          description: Geographic focus
+          example: "North America"
+
+    MatchResponse:
+      type: object
+      required:
+        - founder
+        - matches
+        - total_results
+        - generated_at
+      properties:
+        founder:
+          type: object
+          required:
+            - id
+            - name
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            company_name:
+              type: string
+
+        matches:
+          type: array
+          items:
+            $ref: '#/components/schemas/Match'
+
+        total_results:
+          type: integer
+          description: Total number of matches returned
+
+        generated_at:
+          type: string
+          format: date-time
+          description: Timestamp when matches were generated
+
+    Match:
+      type: object
+      required:
+        - funder
+        - scores
+        - reasoning
+      properties:
+        funder:
+          type: object
+          required:
+            - id
+            - name
+            - firm_name
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+              description: Funder's name
+            firm_name:
+              type: string
+              description: Investment firm name
+            bio:
+              type: string
+              description: Short bio
+
+        scores:
+          type: object
+          required:
+            - total_score
+            - semantic_score
+            - rule_score
+            - stage_score
+            - quality_tier
+          properties:
+            total_score:
+              type: number
+              format: float
+              minimum: 0.0
+              maximum: 1.0
+              description: Overall match score (weighted sum)
+              example: 0.94
+
+            semantic_score:
+              type: number
+              format: float
+              minimum: 0.0
+              maximum: 1.0
+              description: Vector similarity score
+              example: 0.85
+
+            rule_score:
+              type: number
+              format: float
+              minimum: 0.0
+              maximum: 1.0
+              description: Rule-based match score
+              example: 1.0
+
+            stage_score:
+              type: number
+              format: float
+              minimum: 0.0
+              maximum: 1.0
+              description: Stage alignment score
+              example: 1.0
+
+            quality_tier:
+              type: string
+              enum: [Excellent, Good, Fair, Poor]
+              description: |
+                Quality tier based on total score:
+                - Excellent: 0.90-1.00
+                - Good: 0.75-0.89
+                - Fair: 0.50-0.74
+                - Poor: 0.00-0.49
+
+        reasoning:
+          $ref: '#/components/schemas/ScoreBreakdown'
+
+    ScoreBreakdown:
+      type: object
+      required:
+        - semantic
+        - rule
+        - stage
+        - total_score
+        - quality_tier
+      description: Detailed explanation of score components
+      properties:
+        semantic:
+          type: object
+          required:
+            - score
+            - weight
+            - contribution
+            - reasoning
+          properties:
+            score:
+              type: number
+              format: float
+              description: Raw semantic similarity (0.0-1.0)
+            weight:
+              type: number
+              format: float
+              description: Weight applied (0.40)
+              example: 0.4
+            contribution:
+              type: number
+              format: float
+              description: Weighted contribution to total score
+            reasoning:
+              type: string
+              description: Human-readable explanation
+              example: "Strong alignment in business model and investment thesis"
+
+        rule:
+          type: object
+          required:
+            - score
+            - weight
+            - contribution
+            - breakdown
+          properties:
+            score:
+              type: number
+              format: float
+              description: Aggregated rule score (0.0-1.0)
+            weight:
+              type: number
+              format: float
+              example: 0.4
+            contribution:
+              type: number
+              format: float
+            breakdown:
+              type: object
+              required:
+                - industry_match
+                - check_size
+                - geography
+                - completeness
+              properties:
+                industry_match:
+                  $ref: '#/components/schemas/SubScore'
+                check_size:
+                  $ref: '#/components/schemas/SubScore'
+                geography:
+                  $ref: '#/components/schemas/SubScore'
+                completeness:
+                  $ref: '#/components/schemas/SubScore'
+
+        stage:
+          type: object
+          required:
+            - score
+            - weight
+            - contribution
+            - reasoning
+          properties:
+            score:
+              type: number
+              format: float
+            weight:
+              type: number
+              format: float
+              example: 0.2
+            contribution:
+              type: number
+              format: float
+            reasoning:
+              type: string
+              example: "Exact stage match: Seed"
+
+        total_score:
+          type: number
+          format: float
+          description: Final weighted total score
+
+        quality_tier:
+          type: string
+          enum: [Excellent, Good, Fair, Poor]
+
+    SubScore:
+      type: object
+      required:
+        - score
+        - weight
+        - reasoning
+      properties:
+        score:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Component score
+        weight:
+          type: number
+          format: float
+          description: Weight within rule score (0.05-0.15)
+        reasoning:
+          type: string
+          description: Explanation of score
+          example: "Exact match: Fintech"
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+        - status
+      properties:
+        error:
+          type: string
+          description: Error type identifier
+          example: "ValidationError"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Invalid founderId format"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        details:
+          type: object
+          description: Additional error details (optional)
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Optional: Bearer token for authenticated requests.
+        Currently not required for public endpoints.
+
+security: []
+
+externalDocs:
+  description: Full scoring rubric documentation
+  url: https://github.com/yourorg/phalanx-matcher/blob/main/docs/SCORING-RUBRIC.md

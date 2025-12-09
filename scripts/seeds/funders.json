@@ -1,0 +1,57 @@
+[
+  {
+    "name": "Sarah Johnson",
+    "firm_name": "Catalyst Ventures",
+    "bio": "Former fintech founder who built and sold a B2B payments company for $120M. Now investing in early-stage financial infrastructure and enterprise software.",
+    "investment_thesis": "Backing technical founders building picks-and-shovels for the modern financial system. Focus on API-first products, embedded finance, and vertical SaaS with fintech components.",
+    "preferred_industries": ["Fintech", "Enterprise SaaS"],
+    "preferred_stages": ["Seed", "Series A"],
+    "check_size_min": 500,
+    "check_size_max": 2000,
+    "geography_focus": ["North America", "Europe"]
+  },
+  {
+    "name": "Marcus Lee",
+    "firm_name": "HealthVentures Partners",
+    "bio": "20 years in healthcare IT, former CTO at major hospital network. Passionate about technology that improves patient outcomes and reduces clinician burnout.",
+    "investment_thesis": "Healthcare deserves the same quality of software that powers consumer tech. Investing in clinical workflow tools, patient engagement platforms, and healthcare data infrastructure. Must demonstrate measurable clinical impact.",
+    "preferred_industries": ["HealthTech", "DeepTech"],
+    "preferred_stages": ["Seed", "Series A"],
+    "check_size_min": 1000,
+    "check_size_max": 5000,
+    "geography_focus": ["North America", "Europe", "Asia"]
+  },
+  {
+    "name": "Elena Rodriguez",
+    "firm_name": "GreenTech Capital",
+    "bio": "Environmental engineer turned investor. Led sustainability initiatives at Fortune 100 before starting fund. Climate tech is the opportunity of our generation.",
+    "investment_thesis": "Climate change requires both carbon reduction and adaptation solutions. Investing across clean energy, carbon capture, sustainable materials, and climate resilience infrastructure. Looking for 10x impact alongside 10x returns.",
+    "preferred_industries": ["CleanTech", "Logistics", "Enterprise SaaS"],
+    "preferred_stages": ["Series A", "Series B+"],
+    "check_size_min": 3000,
+    "check_size_max": 10000,
+    "geography_focus": ["Europe", "North America"]
+  },
+  {
+    "name": "David Park",
+    "firm_name": "Atlas Seed Fund",
+    "bio": "Angel investor and founder of 3 successful startups (2 exits, 1 IPO). Hands-on partner who helps with go-to-market, hiring, and fundraising. Portfolio has 60% follow-on rate.",
+    "investment_thesis": "Pre-seed and seed generalist focused on exceptional founders solving real problems. Particularly excited by AI/ML applications in traditional industries, vertical SaaS, and infrastructure software. First check partner.",
+    "preferred_industries": ["Enterprise SaaS", "Fintech", "DeepTech", "Cybersecurity"],
+    "preferred_stages": ["Pre-Seed", "Seed"],
+    "check_size_min": 250,
+    "check_size_max": 1000,
+    "geography_focus": ["North America", "Asia", "Europe"]
+  },
+  {
+    "name": "Amara Okonkwo",
+    "firm_name": "NextGen Consumer Fund",
+    "bio": "Former product leader at major consumer tech companies. Built products used by 500M+ people. Now backing the next generation of consumer applications.",
+    "investment_thesis": "Consumer behavior is fundamentally shifting - Gen Z expects personalization, authenticity, and community. Investing in AI-powered consumer apps, creator economy tools, and new forms of social connection. Mobile-first, viral growth.",
+    "preferred_industries": ["Consumer", "EdTech", "PropTech"],
+    "preferred_stages": ["Pre-Seed", "Seed"],
+    "check_size_min": 300,
+    "check_size_max": 1500,
+    "geography_focus": ["Global"]
+  }
+]

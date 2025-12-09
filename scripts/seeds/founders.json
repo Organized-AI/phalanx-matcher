@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Alice Chen",
+    "email": "alice@finflow.ai",
+    "company_name": "FinFlow AI",
+    "company_description": "AI-powered cash flow forecasting platform for SMBs. Uses machine learning to predict revenue, expenses, and cash needs 12 months ahead with 95% accuracy. Integrates with QuickBooks, Stripe, and major banks.",
+    "industry": "Fintech",
+    "stage": "Seed",
+    "seeking_amount_min": 500,
+    "seeking_amount_max": 1000,
+    "geography": "North America",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Bob Martinez",
+    "email": "bob@healthviz.io",
+    "company_name": "HealthViz",
+    "company_description": "Real-time patient data visualization dashboard for hospital ICUs. Aggregates data from 20+ medical devices into a single intuitive interface, reducing alarm fatigue by 70%.",
+    "industry": "HealthTech",
+    "stage": "Series A",
+    "seeking_amount_min": 2000,
+    "seeking_amount_max": 5000,
+    "geography": "North America",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Chen Wei",
+    "email": "chen@learnpath.ai",
+    "company_name": "LearnPath",
+    "company_description": "Adaptive learning platform for K-12 STEM education. Personalizes curriculum based on student performance and learning style. Currently serving 50,000 students across 200 schools.",
+    "industry": "EdTech",
+    "stage": "Seed",
+    "seeking_amount_min": 750,
+    "seeking_amount_max": 1500,
+    "geography": "Asia",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Diana Okafor",
+    "email": "diana@carboncap.io",
+    "company_name": "CarbonCap",
+    "company_description": "Carbon accounting SaaS for enterprise supply chains. Automated emissions tracking and reporting across Scope 1, 2, and 3. Helps companies meet net-zero commitments.",
+    "industry": "CleanTech",
+    "stage": "Series A",
+    "seeking_amount_min": 3000,
+    "seeking_amount_max": 7000,
+    "geography": "Europe",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Ethan Silva",
+    "email": "ethan@teamflow.co",
+    "company_name": "TeamFlow",
+    "company_description": "Enterprise collaboration platform combining Slack's messaging with Figma's real-time collaboration. Built for remote engineering teams. 500+ companies in beta, including 3 Fortune 500s.",
+    "industry": "Enterprise SaaS",
+    "stage": "Seed",
+    "seeking_amount_min": 1000,
+    "seeking_amount_max": 2000,
+    "geography": "North America",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Fatima Hassan",
+    "email": "fatima@styleai.app",
+    "company_name": "StyleAI",
+    "company_description": "AI fashion stylist mobile app. Users upload photos of their wardrobe, get personalized outfit recommendations daily. 100k DAU, $5/month subscription model.",
+    "industry": "Consumer",
+    "stage": "Pre-Seed",
+    "seeking_amount_min": 300,
+    "seeking_amount_max": 500,
+    "geography": "Middle East",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Gabriel Torres",
+    "email": "gabriel@quantumcore.ai",
+    "company_name": "QuantumCore",
+    "company_description": "Quantum-resistant cryptography for blockchain infrastructure. Developing next-gen encryption algorithms to secure crypto assets against quantum computing threats.",
+    "industry": "DeepTech",
+    "stage": "Seed",
+    "seeking_amount_min": 2000,
+    "seeking_amount_max": 4000,
+    "geography": "Europe",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Hannah Kim",
+    "email": "hannah@homeviz.co",
+    "company_name": "HomeViz",
+    "company_description": "Virtual staging and 3D visualization for real estate listings. Increases click-through rates by 3x and reduces time-on-market by 40%. Working with 500+ realtors.",
+    "industry": "PropTech",
+    "stage": "Pre-Seed",
+    "seeking_amount_min": 400,
+    "seeking_amount_max": 800,
+    "geography": "North America",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Ibrahim Yilmaz",
+    "email": "ibrahim@routeopt.io",
+    "company_name": "RouteOptimize",
+    "company_description": "AI-powered last-mile delivery optimization for e-commerce. Reduces delivery costs by 25% through dynamic routing and predictive demand modeling. Processing 10k deliveries daily.",
+    "industry": "Logistics",
+    "stage": "Series A",
+    "seeking_amount_min": 5000,
+    "seeking_amount_max": 10000,
+    "geography": "Europe",
+    "profile_completeness": 1.0
+  },
+  {
+    "name": "Julia Kowalski",
+    "email": "julia@shieldsec.io",
+    "company_name": "ShieldSec",
+    "company_description": "Zero-trust network security for distributed teams. Continuous authentication and micro-segmentation. Protects against lateral movement in breaches. SOC 2 Type II certified.",
+    "industry": "Cybersecurity",
+    "stage": "Seed",
+    "seeking_amount_min": 1500,
+    "seeking_amount_max": 3000,
+    "geography": "North America",
+    "profile_completeness": 1.0
+  }
+]
