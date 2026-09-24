@@ -22,3 +22,7 @@ See `PLANNING/EXECUTION-PLAN.md` for full implementation details.
 - **Jordan** - PM, Matching Algorithm (Phase 4)
 - **Jake** - Prompt AI Engineer, Intake (Phase 1, 3, 5)
 - **Paul** - Architect, Data Extraction (Phase 2)
+
+---
+
+Maintained by Jordaaan Hill ([LinkedIn](https://www.linkedin.com/in/jordaaanhill)).
